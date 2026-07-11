@@ -178,6 +178,8 @@ class HabitacionDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+
+                // Opciones relacionadas con el tipo de habitación.
                 if (habitacion.tipoHabitacionId != null) ...[
                   const SizedBox(height: 12),
                   SizedBox(
@@ -197,7 +199,26 @@ class HabitacionDetailScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        context.push(
+                          '/tipos-habitacion/'
+                          '${habitacion.tipoHabitacionId}/servicios',
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.room_service_outlined,
+                      ),
+                      label: const Text(
+                        'Ver servicios de esta habitación',
+                      ),
+                    ),
+                  ),
                 ],
+
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 52,

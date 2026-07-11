@@ -14,6 +14,7 @@ import '../screens/catalog/hotel_detail_screen.dart';
 import '../screens/catalog/imagen_habitacion_screen.dart';
 import '../screens/catalog/servicio_catalog_screen.dart';
 import '../screens/catalog/tipo_habitacion_cama_screen.dart';
+import '../screens/catalog/tipo_habitacion_servicio_screen.dart';
 import 'public_shell.dart';
 
 bool _isStaff(AuthState auth) {
@@ -292,8 +293,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
             },
           ),
-
-          // Catálogo general de servicios.
           GoRoute(
             path: '/servicios',
             builder: (context, state) {
@@ -301,6 +300,29 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
 
+          // Servicios asociados con el tipo de habitación.
+          GoRoute(
+            path: '/tipos-habitacion/:tipoId/servicios',
+            builder: (context, state) {
+              final tipoId = int.tryParse(
+                state.pathParameters['tipoId'] ?? '',
+              );
+
+              if (tipoId == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Tipo de habitación inválido',
+                    ),
+                  ),
+                );
+              }
+
+              return TipoHabitacionServicioScreen(
+                tipoHabitacionId: tipoId,
+              );
+            },
+          ),
           GoRoute(
             path: '/reservas',
             builder: (context, state) {
