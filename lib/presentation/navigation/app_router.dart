@@ -12,6 +12,7 @@ import '../screens/catalog/home_screen.dart';
 import '../screens/catalog/hotel_catalog_screen.dart';
 import '../screens/catalog/hotel_detail_screen.dart';
 import '../screens/catalog/imagen_habitacion_screen.dart';
+import '../screens/catalog/servicio_catalog_screen.dart';
 import '../screens/catalog/tipo_habitacion_cama_screen.dart';
 import 'public_shell.dart';
 
@@ -219,8 +220,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
             },
           ),
-
-          // Debe estar antes de /habitaciones/:id.
           GoRoute(
             path: '/habitaciones/:id/imagenes',
             builder: (context, state) {
@@ -293,6 +292,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
             },
           ),
+
+          // Catálogo general de servicios.
+          GoRoute(
+            path: '/servicios',
+            builder: (context, state) {
+              return const ServicioCatalogScreen();
+            },
+          ),
+
           GoRoute(
             path: '/reservas',
             builder: (context, state) {
@@ -305,8 +313,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/reservas/:id',
             builder: (context, state) {
               return _PlaceholderScreen(
-                'Reserva '
-                '#${state.pathParameters['id']}',
+                'Reserva #${state.pathParameters['id']}',
               );
             },
           ),
