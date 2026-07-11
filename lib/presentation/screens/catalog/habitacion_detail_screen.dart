@@ -198,6 +198,23 @@ class HabitacionDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      context.push(
+                        '/habitaciones/$habitacionId/imagenes',
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.photo_library_outlined,
+                    ),
+                    label: const Text(
+                      'Ver imágenes de la habitación',
+                    ),
+                  ),
+                ),
               ],
             ),
           );

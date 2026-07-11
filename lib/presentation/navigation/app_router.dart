@@ -11,6 +11,7 @@ import '../screens/catalog/habitacion_list_screen.dart';
 import '../screens/catalog/home_screen.dart';
 import '../screens/catalog/hotel_catalog_screen.dart';
 import '../screens/catalog/hotel_detail_screen.dart';
+import '../screens/catalog/imagen_habitacion_screen.dart';
 import '../screens/catalog/tipo_habitacion_cama_screen.dart';
 import 'public_shell.dart';
 
@@ -218,6 +219,30 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
             },
           ),
+
+          // Debe estar antes de /habitaciones/:id.
+          GoRoute(
+            path: '/habitaciones/:id/imagenes',
+            builder: (context, state) {
+              final habitacionId = int.tryParse(
+                state.pathParameters['id'] ?? '',
+              );
+
+              if (habitacionId == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Habitación inválida',
+                    ),
+                  ),
+                );
+              }
+
+              return ImagenHabitacionScreen(
+                habitacionId: habitacionId,
+              );
+            },
+          ),
           GoRoute(
             path: '/habitaciones/:id',
             builder: (context, state) {
@@ -289,8 +314,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/reserva',
             builder: (context, state) {
               return const _PlaceholderScreen(
-                'Proceso de reserva '
-                '— próximo módulo',
+                'Proceso de reserva — próximo módulo',
               );
             },
           ),
