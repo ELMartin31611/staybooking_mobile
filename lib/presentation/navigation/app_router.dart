@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/catalog/cama_list_screen.dart';
 import '../screens/catalog/habitacion_detail_screen.dart';
 import '../screens/catalog/habitacion_list_screen.dart';
 import '../screens/catalog/home_screen.dart';
@@ -236,6 +237,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               return HabitacionDetailScreen(
                 habitacionId: habitacionId,
               );
+            },
+          ),
+          GoRoute(
+            path: '/camas',
+            builder: (context, state) {
+              return const CamaListScreen();
             },
           ),
           GoRoute(

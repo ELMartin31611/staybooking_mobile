@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../providers/habitacion_provider.dart';
 
@@ -174,6 +175,21 @@ class HabitacionDetailScreen extends ConsumerWidget {
                       habitacion.disponible
                           ? 'Seleccionar habitación'
                           : 'Habitación no disponible',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      context.push('/camas');
+                    },
+                    icon: const Icon(
+                      Icons.bed_outlined,
+                    ),
+                    label: const Text(
+                      'Ver tipos de cama',
                     ),
                   ),
                 ),
