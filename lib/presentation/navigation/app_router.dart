@@ -11,6 +11,7 @@ import '../screens/catalog/habitacion_list_screen.dart';
 import '../screens/catalog/home_screen.dart';
 import '../screens/catalog/hotel_catalog_screen.dart';
 import '../screens/catalog/hotel_detail_screen.dart';
+import '../screens/catalog/tipo_habitacion_cama_screen.dart';
 import 'public_shell.dart';
 
 bool _isStaff(AuthState auth) {
@@ -243,6 +244,28 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/camas',
             builder: (context, state) {
               return const CamaListScreen();
+            },
+          ),
+          GoRoute(
+            path: '/tipos-habitacion/:tipoId/camas',
+            builder: (context, state) {
+              final tipoId = int.tryParse(
+                state.pathParameters['tipoId'] ?? '',
+              );
+
+              if (tipoId == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Tipo de habitación inválido',
+                    ),
+                  ),
+                );
+              }
+
+              return TipoHabitacionCamaScreen(
+                tipoHabitacionId: tipoId,
+              );
             },
           ),
           GoRoute(

@@ -178,21 +178,26 @@ class HabitacionDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      context.push('/camas');
-                    },
-                    icon: const Icon(
-                      Icons.bed_outlined,
-                    ),
-                    label: const Text(
-                      'Ver tipos de cama',
+                if (habitacion.tipoHabitacionId != null) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        context.push(
+                          '/tipos-habitacion/'
+                          '${habitacion.tipoHabitacionId}/camas',
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.bed_outlined,
+                      ),
+                      label: const Text(
+                        'Ver camas de esta habitación',
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           );
