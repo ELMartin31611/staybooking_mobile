@@ -81,11 +81,17 @@ class AuthController extends StateNotifier<AuthState> {
 
     try {
       state = state.copyWith(isLoading: true, clearError: true);
-      final profile = await _repository.getProfile();
+      PerfilUsuario? profile;
+      try {
+        profile = await _repository.getProfile();
+      } catch (_) {
+        profile = null;
+      }
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
         profile: profile,
+        clearProfile: profile == null,
       );
     } catch (_) {
       await _repository.logout();
@@ -102,13 +108,25 @@ class AuthController extends StateNotifier<AuthState> {
     required String password,
   }) async {
     try {
-      state = state.copyWith(isLoading: true, clearError: true);
+      state = state.copyWith(
+        isLoading: true,
+        clearError: true,
+        clearProfile: true,
+      );
       await _repository.login(username: username, password: password);
-      final profile = await _repository.getProfile();
+
+      PerfilUsuario? profile;
+      try {
+        profile = await _repository.getProfile();
+      } catch (_) {
+        profile = null;
+      }
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
         profile: profile,
+        clearProfile: profile == null,
       );
       return true;
     } catch (e) {
@@ -116,6 +134,7 @@ class AuthController extends StateNotifier<AuthState> {
         isLoading: false,
         isAuthenticated: false,
         error: _parseError(e),
+        clearProfile: true,
       );
       return false;
     }
@@ -123,13 +142,25 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<bool> register({required Map<String, dynamic> payload}) async {
     try {
-      state = state.copyWith(isLoading: true, clearError: true);
+      state = state.copyWith(
+        isLoading: true,
+        clearError: true,
+        clearProfile: true,
+      );
       await _repository.register(payload: payload);
-      final profile = await _repository.getProfile();
+
+      PerfilUsuario? profile;
+      try {
+        profile = await _repository.getProfile();
+      } catch (_) {
+        profile = null;
+      }
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
         profile: profile,
+        clearProfile: profile == null,
       );
       return true;
     } catch (e) {
@@ -137,6 +168,7 @@ class AuthController extends StateNotifier<AuthState> {
         isLoading: false,
         isAuthenticated: false,
         error: _parseError(e),
+        clearProfile: true,
       );
       return false;
     }

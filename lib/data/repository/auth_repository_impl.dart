@@ -1,4 +1,6 @@
 import '../../domain/model/auth_response.dart';
+import '../../domain/model/cliente.dart';
+import '../../domain/model/direccion_cliente.dart';
 import '../../domain/model/perfil_usuario.dart';
 import '../../domain/repository/auth_repository.dart';
 import '../local/secure_storage.dart';
@@ -55,6 +57,26 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<PerfilUsuario> getProfile() {
     return _remote.getProfile();
+  }
+
+  @override
+  Future<Cliente?> getClienteByPerfil(int perfilId) {
+    return _remote.getClienteByPerfil(perfilId);
+  }
+
+  @override
+  Future<Cliente> saveCliente(Cliente cliente) {
+    return _remote.saveCliente(cliente);
+  }
+
+  @override
+  Future<DireccionCliente?> getDireccionByCliente(int clienteId) {
+    return _remote.getDireccionByCliente(clienteId);
+  }
+
+  @override
+  Future<DireccionCliente> saveDireccion(DireccionCliente direccion) {
+    return _remote.saveDireccion(direccion);
   }
 
   @override
