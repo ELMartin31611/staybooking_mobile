@@ -8,11 +8,53 @@ import 'cliente_screen.dart';
 import 'direccion_cliente_screen.dart';
 import 'login_screen.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  Cliente? _cliente;
+  DireccionCliente? _direccion;
+  bool _loadingExtra = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExtraData();
+  }
+
+  Future<void> _loadExtraData() async {
+    final authState = ref.read(authControllerProvider);
+    final perfil = authState.profile;
+
+    if (perfil == null) {
+      if (!mounted) return;
+      setState(() {
+        _loadingExtra = false;
+      });
+      return;
+    }
+
+    final repository = ref.read(authRepositoryProvider);
+    final cliente = await repository.getClienteByPerfil(perfil.id);
+    DireccionCliente? direccion;
+    if (cliente != null) {
+      direccion = await repository.getDireccionByCliente(cliente.id);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _cliente = cliente;
+      _direccion = direccion;
+      _loadingExtra = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final perfil = authState.profile;
 
@@ -28,41 +70,72 @@ class ProfileScreen extends ConsumerWidget {
             _ProfileRow(label: 'Teléfono', value: perfil?.telefono),
             _ProfileRow(label: 'Estado', value: perfil?.estado),
             const SizedBox(height: 24),
+            if (_loadingExtra)
+              const Center(child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: CircularProgressIndicator(),
+              ))
+            else ...[
+              _SectionTitle(title: 'Cliente'),
+              _ProfileRow(label: 'Cédula', value: _cliente?.cedula),
+              _ProfileRow(label: 'Nombres', value: _cliente?.nombres),
+              _ProfileRow(label: 'Apellidos', value: _cliente?.apellidos),
+              _ProfileRow(label: 'Género', value: _cliente?.genero),
+              _ProfileRow(label: 'Nacionalidad', value: _cliente?.nacionalidad),
+              _ProfileRow(
+                label: 'Correo alternativo',
+                value: _cliente?.correoAlternativo,
+              ),
+              const SizedBox(height: 20),
+              _SectionTitle(title: 'Dirección'),
+              _ProfileRow(label: 'Provincia', value: _direccion?.provincia),
+              _ProfileRow(label: 'Ciudad', value: _direccion?.ciudad),
+              _ProfileRow(
+                label: 'Calle principal',
+                value: _direccion?.callePrincipal,
+              ),
+              _ProfileRow(
+                label: 'Calle secundaria',
+                value: _direccion?.calleSecundaria,
+              ),
+              _ProfileRow(label: 'Referencia', value: _direccion?.referencia),
+              _ProfileRow(label: 'Código postal', value: _direccion?.codigoPostal),
+              const SizedBox(height: 24),
+            ],
             OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).push(
+              onPressed: () async {
+                final changed = await Navigator.of(context).push<bool>(
                   MaterialPageRoute(
                     builder: (_) => ClienteScreen(
-                      cliente: Cliente(
-                        id: 0,
-                        perfil: perfil?.id ?? 0,
-                        cedula: '',
-                        nombres: '',
-                        apellidos: '',
-                      ),
+                      perfilId: perfil?.id ?? 0,
                     ),
                   ),
                 );
+                if (changed == true && mounted) {
+                  setState(() {
+                    _loadingExtra = true;
+                  });
+                  await _loadExtraData();
+                }
               },
               child: const Text('Datos del cliente'),
             ),
             const SizedBox(height: 12),
             OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).push(
+              onPressed: () async {
+                final changed = await Navigator.of(context).push<bool>(
                   MaterialPageRoute(
                     builder: (_) => DireccionClienteScreen(
-                      direccion: DireccionCliente(
-                        id: 0,
-                        cliente: 0,
-                        provincia: '',
-                        ciudad: '',
-                        callePrincipal: '',
-                        esPrincipal: true,
-                      ),
+                      perfilId: perfil?.id ?? 0,
                     ),
                   ),
                 );
+                if (changed == true && mounted) {
+                  setState(() {
+                    _loadingExtra = true;
+                  });
+                  await _loadExtraData();
+                }
               },
               child: const Text('Dirección del cliente'),
             ),
@@ -109,6 +182,25 @@ class _ProfileRow extends StatelessWidget {
             child: Text(value == null || value!.isEmpty ? '-' : value!),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
       ),
     );
   }
