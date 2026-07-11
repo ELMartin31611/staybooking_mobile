@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LoginScreen extends StatefulWidget {
+import '../../providers/auth_provider.dart';
+
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -20,16 +23,32 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final ok = await ref.read(authControllerProvider.notifier).login(
+          username: _usernameController.text.trim(),
+          password: _passwordController.text,
+        );
+
+    if (!mounted) return;
+
+    final state = ref.read(authControllerProvider);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Pantalla lista para conectar login JWT')),
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Login exitoso: ${state.profile?.username ?? ''}'
+              : (state.error ?? 'Credenciales inválidas'),
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Iniciar sesión')),
       body: SafeArea(
@@ -94,8 +113,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _submit,
-                  child: const Text('Entrar'),
+                  onPressed: authState.isLoading ? null : _submit,
+                  child: authState.isLoading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Entrar'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton(
