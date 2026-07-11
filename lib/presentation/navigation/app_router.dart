@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/catalog/habitacion_detail_screen.dart';
+import '../screens/catalog/habitacion_list_screen.dart';
 import '../screens/catalog/home_screen.dart';
 import '../screens/catalog/hotel_catalog_screen.dart';
 import '../screens/catalog/hotel_detail_screen.dart';
@@ -54,7 +56,11 @@ class _PlaceholderScreen extends ConsumerWidget {
             tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await ref.read(authControllerProvider.notifier).logout();
+              await ref
+                  .read(
+                    authControllerProvider.notifier,
+                  )
+                  .logout();
             },
           ),
         ],
@@ -77,7 +83,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     refreshListenable: _AuthStateListenable(ref),
     redirect: (context, state) {
-      final auth = ref.read(authControllerProvider);
+      final auth = ref.read(
+        authControllerProvider,
+      );
+
       final location = state.matchedLocation;
 
       if (auth.isLoading) {
@@ -154,16 +163,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               return const HotelCatalogScreen();
             },
           ),
-
-          // Detalle real del hotel y tipos de habitación.
           GoRoute(
             path: '/hoteles/:id',
             builder: (context, state) {
-              final id = int.tryParse(
+              final hotelId = int.tryParse(
                 state.pathParameters['id'] ?? '',
               );
 
-              if (id == null) {
+              if (hotelId == null) {
                 return const Scaffold(
                   body: Center(
                     child: Text(
@@ -174,11 +181,63 @@ final routerProvider = Provider<GoRouter>((ref) {
               }
 
               return HotelDetailScreen(
-                hotelId: id,
+                hotelId: hotelId,
               );
             },
           ),
+          GoRoute(
+            path: '/hoteles/:hotelId/tipos-habitacion/:tipoId/habitaciones',
+            builder: (context, state) {
+              final hotelId = int.tryParse(
+                state.pathParameters['hotelId'] ?? '',
+              );
 
+              final tipoId = int.tryParse(
+                state.pathParameters['tipoId'] ?? '',
+              );
+
+              if (hotelId == null || tipoId == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Datos de habitaciones inválidos',
+                    ),
+                  ),
+                );
+              }
+
+              final tipoNombre =
+                  state.uri.queryParameters['nombre'] ?? 'Habitaciones';
+
+              return HabitacionListScreen(
+                hotelId: hotelId,
+                tipoHabitacionId: tipoId,
+                tipoNombre: tipoNombre,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/habitaciones/:id',
+            builder: (context, state) {
+              final habitacionId = int.tryParse(
+                state.pathParameters['id'] ?? '',
+              );
+
+              if (habitacionId == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Habitación inválida',
+                    ),
+                  ),
+                );
+              }
+
+              return HabitacionDetailScreen(
+                habitacionId: habitacionId,
+              );
+            },
+          ),
           GoRoute(
             path: '/reservas',
             builder: (context, state) {
