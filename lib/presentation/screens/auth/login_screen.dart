@@ -68,6 +68,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 16),
+                Center(
+                  child: Container(
+                    width: 170,
+                    height: 170,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Image.network(
+                      'https://img.magnific.com/vector-premium/logo-circular-hotel_427757-45839.jpg?semt=ais_hybrid&w=740&q=80',
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.hotel, size: 54),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 const Text(
                   'StayBooking',
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),

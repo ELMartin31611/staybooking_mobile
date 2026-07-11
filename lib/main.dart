@@ -19,6 +19,7 @@ class StayBookingApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const Color primaryNavy = Color(0xFF0D1B2A); // Un azul más profundo y lujoso
     const Color accentGold = Color(0xFFC5A059);  // Oro mate
+    const Color accentRed = Color(0xFFF2051D);
     const Color background = Color(0xFFF8F9FA);
 
     return MaterialApp(
@@ -31,12 +32,19 @@ class StayBookingApp extends StatelessWidget {
         textTheme: GoogleFonts.plusJakartaSansTextTheme(
           Theme.of(context).textTheme,
         ),
-        
+
         colorScheme: ColorScheme.fromSeed(
-          seedColor: primaryNavy,
-          primary: primaryNavy,
+          seedColor: accentRed,
+          primary: accentRed,
           secondary: accentGold,
+          tertiary: primaryNavy,
           surface: Colors.white,
+        ),
+
+        appBarTheme: const AppBarTheme(
+          backgroundColor: accentRed,
+          foregroundColor: Colors.white,
+          centerTitle: true,
         ),
 
         // Estilo de Tarjetas: Elevadas y con bordes suaves
@@ -52,14 +60,29 @@ class StayBookingApp extends StatelessWidget {
         // Botones con estilo moderno (bordes redondeados y sombra sutil)
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: primaryNavy,
+            backgroundColor: accentRed,
             foregroundColor: Colors.white,
             elevation: 4,
-            shadowColor: primaryNavy.withValues(alpha: 0.3),
+            shadowColor: accentRed.withValues(alpha: 0.3),
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
           ),
+        ),
+
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: accentRed,
+            side: const BorderSide(color: accentRed, width: 1.5),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+
+        progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: accentRed,
         ),
 
         // Inputs con "Floating Label" y estilo limpio
