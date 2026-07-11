@@ -33,6 +33,7 @@ dependencies:
 
   # ── Configuración / entorno ───────────────────────────────
   flutter_dotenv: ^5.2.1
+  google_fonts: ^6.2.1
 
   # ── Utilidades ────────────────────────────────────────────
   intl: ^0.19.0
