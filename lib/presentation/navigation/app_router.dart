@@ -7,6 +7,7 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/catalog/home_screen.dart';
 import '../screens/catalog/hotel_catalog_screen.dart';
+import '../screens/catalog/hotel_detail_screen.dart';
 import 'public_shell.dart';
 
 bool _isStaff(AuthState auth) {
@@ -77,7 +78,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: _AuthStateListenable(ref),
     redirect: (context, state) {
       final auth = ref.read(authControllerProvider);
-
       final location = state.matchedLocation;
 
       if (auth.isLoading) {
@@ -154,16 +154,31 @@ final routerProvider = Provider<GoRouter>((ref) {
               return const HotelCatalogScreen();
             },
           ),
+
+          // Detalle real del hotel y tipos de habitación.
           GoRoute(
             path: '/hoteles/:id',
             builder: (context, state) {
-              return _PlaceholderScreen(
-                'Detalle del hotel '
-                '#${state.pathParameters['id']} '
-                '— Módulo 5',
+              final id = int.tryParse(
+                state.pathParameters['id'] ?? '',
+              );
+
+              if (id == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Hotel inválido',
+                    ),
+                  ),
+                );
+              }
+
+              return HotelDetailScreen(
+                hotelId: id,
               );
             },
           ),
+
           GoRoute(
             path: '/reservas',
             builder: (context, state) {
