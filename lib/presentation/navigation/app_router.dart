@@ -12,7 +12,9 @@ import '../screens/catalog/home_screen.dart';
 import '../screens/catalog/hotel_catalog_screen.dart';
 import '../screens/catalog/hotel_detail_screen.dart';
 import '../screens/catalog/imagen_habitacion_screen.dart';
+import '../screens/catalog/servicio_catalog_screen.dart';
 import '../screens/catalog/tipo_habitacion_cama_screen.dart';
+import '../screens/catalog/tipo_habitacion_servicio_screen.dart';
 import 'public_shell.dart';
 
 bool _isStaff(AuthState auth) {
@@ -219,8 +221,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
             },
           ),
-
-          // Debe estar antes de /habitaciones/:id.
           GoRoute(
             path: '/habitaciones/:id/imagenes',
             builder: (context, state) {
@@ -294,6 +294,36 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(
+            path: '/servicios',
+            builder: (context, state) {
+              return const ServicioCatalogScreen();
+            },
+          ),
+
+          // Servicios asociados con el tipo de habitación.
+          GoRoute(
+            path: '/tipos-habitacion/:tipoId/servicios',
+            builder: (context, state) {
+              final tipoId = int.tryParse(
+                state.pathParameters['tipoId'] ?? '',
+              );
+
+              if (tipoId == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Tipo de habitación inválido',
+                    ),
+                  ),
+                );
+              }
+
+              return TipoHabitacionServicioScreen(
+                tipoHabitacionId: tipoId,
+              );
+            },
+          ),
+          GoRoute(
             path: '/reservas',
             builder: (context, state) {
               return const _PlaceholderScreen(
@@ -305,8 +335,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/reservas/:id',
             builder: (context, state) {
               return _PlaceholderScreen(
-                'Reserva '
-                '#${state.pathParameters['id']}',
+                'Reserva #${state.pathParameters['id']}',
               );
             },
           ),
