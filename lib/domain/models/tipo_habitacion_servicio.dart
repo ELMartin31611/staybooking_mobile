@@ -37,9 +37,7 @@ class TipoHabitacionServicio {
             json['tipoHabitacionId'],
       ),
       servicioId: _relationId(
-        json['servicio'] ??
-            json['servicio_id'] ??
-            json['servicioId'],
+        json['servicio'] ?? json['servicio_id'] ?? json['servicioId'],
       ),
       incluido: _toBool(
         json['incluido'] ??
@@ -49,10 +47,7 @@ class TipoHabitacionServicio {
       ),
       precioAdicional: precioAdicional,
       activo: _toBool(
-        json['activo'] ??
-            json['is_active'] ??
-            json['disponible'] ??
-            true,
+        json['activo'] ?? json['is_active'] ?? json['disponible'] ?? true,
       ),
       raw: Map<String, dynamic>.from(json),
     );
@@ -77,8 +72,7 @@ class TipoHabitacionServicio {
 
     if (value is Map) {
       return _nullableInt(
-        value['id'] ??
-            value['pk'],
+        value['id'] ?? value['pk'],
       );
     }
 
@@ -123,8 +117,7 @@ class TipoHabitacionServicio {
       return value != 0;
     }
 
-    final text =
-        value?.toString().trim().toLowerCase() ?? '';
+    final text = value?.toString().trim().toLowerCase() ?? '';
 
     return text == 'true' ||
         text == '1' ||
@@ -156,8 +149,7 @@ class TipoHabitacionServicioPage {
       final results = data
           .whereType<Map>()
           .map(
-            (item) =>
-                TipoHabitacionServicio.fromJson(
+            (item) => TipoHabitacionServicio.fromJson(
               Map<String, dynamic>.from(item),
             ),
           )
@@ -174,8 +166,7 @@ class TipoHabitacionServicioPage {
     if (data is Map) {
       final json = Map<String, dynamic>.from(data);
 
-      final dynamic rawResults =
-          json['results'] ??
+      final dynamic rawResults = json['results'] ??
           json['data'] ??
           json['tipos_habitacion_servicios'] ??
           json['servicios'] ??
@@ -185,8 +176,7 @@ class TipoHabitacionServicioPage {
           ? rawResults
               .whereType<Map>()
               .map(
-                (item) =>
-                    TipoHabitacionServicio.fromJson(
+                (item) => TipoHabitacionServicio.fromJson(
                   Map<String, dynamic>.from(item),
                 ),
               )

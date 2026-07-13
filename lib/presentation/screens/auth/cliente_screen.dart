@@ -49,13 +49,14 @@ class _ClienteScreenState extends ConsumerState<ClienteScreen> {
 
     if (!mounted) return;
 
-    _cliente = cliente ?? Cliente(
-      id: 0,
-      perfil: widget.perfilId,
-      cedula: '',
-      nombres: '',
-      apellidos: '',
-    );
+    _cliente = cliente ??
+        Cliente(
+          id: 0,
+          perfil: widget.perfilId,
+          cedula: '',
+          nombres: '',
+          apellidos: '',
+        );
 
     _cedulaController.text = _cliente!.cedula;
     _nombresController.text = _cliente!.nombres;

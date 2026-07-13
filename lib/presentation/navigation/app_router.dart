@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
+import '../screens/auth/profile_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/catalog/cama_list_screen.dart';
 import '../screens/catalog/habitacion_detail_screen.dart';
@@ -15,6 +16,10 @@ import '../screens/catalog/imagen_habitacion_screen.dart';
 import '../screens/catalog/servicio_catalog_screen.dart';
 import '../screens/catalog/tipo_habitacion_cama_screen.dart';
 import '../screens/catalog/tipo_habitacion_servicio_screen.dart';
+import '../screens/orders/create_reservation_screen.dart';
+import '../screens/orders/guest_form_screen.dart';
+import '../screens/orders/my_reservations_screen.dart';
+import '../screens/orders/reservation_detail_screen.dart';
 import 'public_shell.dart';
 
 bool _isStaff(AuthState auth) {
@@ -99,7 +104,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       final isAuthRoute = location == '/login' || location == '/register';
-
       final isSplash = location == '/splash';
 
       if (isSplash) {
@@ -178,9 +182,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               if (hotelId == null) {
                 return const Scaffold(
                   body: Center(
-                    child: Text(
-                      'Hotel inválido',
-                    ),
+                    child: Text('Hotel inválido'),
                   ),
                 );
               }
@@ -231,9 +233,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               if (habitacionId == null) {
                 return const Scaffold(
                   body: Center(
-                    child: Text(
-                      'Habitación inválida',
-                    ),
+                    child: Text('Habitación inválida'),
                   ),
                 );
               }
@@ -253,9 +253,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               if (habitacionId == null) {
                 return const Scaffold(
                   body: Center(
-                    child: Text(
-                      'Habitación inválida',
-                    ),
+                    child: Text('Habitación inválida'),
                   ),
                 );
               }
@@ -299,8 +297,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               return const ServicioCatalogScreen();
             },
           ),
-
-          // Servicios asociados con el tipo de habitación.
           GoRoute(
             path: '/tipos-habitacion/:tipoId/servicios',
             builder: (context, state) {
@@ -326,33 +322,59 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/reservas',
             builder: (context, state) {
-              return const _PlaceholderScreen(
-                'Mis reservas — próximo módulo',
+              return const MyReservationsScreen();
+            },
+          ),
+          GoRoute(
+            path: '/reservas/:id/huespedes/nuevo',
+            builder: (context, state) {
+              final reservationId = int.tryParse(
+                state.pathParameters['id'] ?? '',
+              );
+
+              if (reservationId == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text('Reserva inválida'),
+                  ),
+                );
+              }
+
+              return GuestFormScreen(
+                reservationId: reservationId,
               );
             },
           ),
           GoRoute(
             path: '/reservas/:id',
             builder: (context, state) {
-              return _PlaceholderScreen(
-                'Reserva #${state.pathParameters['id']}',
+              final reservationId = int.tryParse(
+                state.pathParameters['id'] ?? '',
+              );
+
+              if (reservationId == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text('Reserva inválida'),
+                  ),
+                );
+              }
+
+              return ReservationDetailScreen(
+                reservationId: reservationId,
               );
             },
           ),
           GoRoute(
             path: '/reserva',
             builder: (context, state) {
-              return const _PlaceholderScreen(
-                'Proceso de reserva — próximo módulo',
-              );
+              return const CreateReservationScreen();
             },
           ),
           GoRoute(
             path: '/perfil',
             builder: (context, state) {
-              return const _PlaceholderScreen(
-                'Mi perfil — próximo módulo',
-              );
+              return const ProfileScreen();
             },
           ),
         ],
