@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/config/app_config.dart';
 import 'presentation/navigation/app_router.dart';
+import 'presentation/providers/auth_provider.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -18,14 +19,25 @@ Future<void> main() async {
   );
 }
 
-class StayBookingApp extends ConsumerWidget {
+class StayBookingApp extends ConsumerStatefulWidget {
   const StayBookingApp({super.key});
 
   @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  ConsumerState<StayBookingApp> createState() => _StayBookingAppState();
+}
+
+class _StayBookingAppState extends ConsumerState<StayBookingApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      ref.read(authControllerProvider.notifier).bootstrap();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(

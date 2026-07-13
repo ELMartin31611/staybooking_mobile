@@ -46,19 +46,26 @@ final secureStorageProvider = Provider<SecureStorage>((ref) {
 final authDioProvider = Provider<Dio>((ref) {
   final dio = DioClient.dio;
   final storage = ref.watch(secureStorageProvider);
-  final hasInterceptor =
-      dio.interceptors.any((interceptor) => interceptor is AuthInterceptor);
+
+  final hasInterceptor = dio.interceptors.any(
+    (interceptor) => interceptor is AuthInterceptor,
+  );
 
   if (!hasInterceptor) {
-    dio.interceptors.add(AuthInterceptor(secureStorage: storage));
+    dio.interceptors.add(
+      AuthInterceptor(
+        secureStorage: storage,
+      ),
+    );
   }
 
   return dio;
 });
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
-  final dio = ref.watch(authDioProvider);
-  return AuthRemoteDataSource(dio: dio);
+  return AuthRemoteDataSource(
+    dio: ref.watch(authDioProvider),
+  );
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -69,35 +76,70 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController({required AuthRepository repository})
-      : _repository = repository,
-        super(const AuthState());
+  AuthController({
+    required AuthRepository repository,
+  })  : _repository = repository,
+        super(
+          const AuthState(
+            isLoading: true,
+          ),
+        );
 
   final AuthRepository _repository;
 
   Future<void> bootstrap() async {
-    final token = await _repository.getAccessToken();
-    if (token == null || token.isEmpty) return;
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+    );
 
     try {
-      state = state.copyWith(isLoading: true, clearError: true);
+      final token = await _repository.getAccessToken();
+
+      if (token == null || token.trim().isEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          isAuthenticated: false,
+          clearProfile: true,
+          clearError: true,
+        );
+        return;
+      }
+
       PerfilUsuario? profile;
+
       try {
         profile = await _repository.getProfile();
       } catch (_) {
-        profile = null;
+        try {
+          await _repository.refreshToken();
+          profile = await _repository.getProfile();
+        } catch (_) {
+          await _repository.logout();
+
+          state = state.copyWith(
+            isLoading: false,
+            isAuthenticated: false,
+            clearProfile: true,
+            clearError: true,
+          );
+          return;
+        }
       }
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
         profile: profile,
-        clearProfile: profile == null,
+        clearError: true,
       );
-    } catch (_) {
+    } catch (error) {
       await _repository.logout();
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
+        error: _parseError(error),
         clearProfile: true,
       );
     }
@@ -107,76 +149,113 @@ class AuthController extends StateNotifier<AuthState> {
     required String username,
     required String password,
   }) async {
-    try {
-      state = state.copyWith(
-        isLoading: true,
-        clearError: true,
-        clearProfile: true,
-      );
-      await _repository.login(username: username, password: password);
+    state = state.copyWith(
+      isLoading: true,
+      isAuthenticated: false,
+      clearError: true,
+      clearProfile: true,
+    );
 
-      PerfilUsuario? profile;
-      try {
-        profile = await _repository.getProfile();
-      } catch (_) {
-        profile = null;
+    try {
+      final auth = await _repository.login(
+        username: username,
+        password: password,
+      );
+
+      if (auth.access.trim().isEmpty || auth.refresh.trim().isEmpty) {
+        await _repository.logout();
+
+        state = state.copyWith(
+          isLoading: false,
+          isAuthenticated: false,
+          error: 'El servidor no devolvió tokens de autenticación.',
+          clearProfile: true,
+        );
+
+        return false;
       }
+
+      final profile = await _repository.getProfile();
 
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
         profile: profile,
-        clearProfile: profile == null,
+        clearError: true,
       );
+
       return true;
-    } catch (e) {
+    } catch (error) {
+      await _repository.logout();
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
-        error: _parseError(e),
+        error: _parseError(error),
         clearProfile: true,
       );
+
       return false;
     }
   }
 
-  Future<bool> register({required Map<String, dynamic> payload}) async {
-    try {
-      state = state.copyWith(
-        isLoading: true,
-        clearError: true,
-        clearProfile: true,
-      );
-      await _repository.register(payload: payload);
+  Future<bool> register({
+    required Map<String, dynamic> payload,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      isAuthenticated: false,
+      clearError: true,
+      clearProfile: true,
+    );
 
-      PerfilUsuario? profile;
-      try {
-        profile = await _repository.getProfile();
-      } catch (_) {
-        profile = null;
+    try {
+      final auth = await _repository.register(
+        payload: payload,
+      );
+
+      if (auth.access.trim().isEmpty || auth.refresh.trim().isEmpty) {
+        await _repository.logout();
+
+        state = state.copyWith(
+          isLoading: false,
+          isAuthenticated: false,
+          error: 'Cuenta creada. Ahora inicia sesión con tus credenciales.',
+          clearProfile: true,
+        );
+
+        return false;
       }
+
+      final profile = await _repository.getProfile();
 
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
         profile: profile,
-        clearProfile: profile == null,
+        clearError: true,
       );
+
       return true;
-    } catch (e) {
+    } catch (error) {
+      await _repository.logout();
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
-        error: _parseError(e),
+        error: _parseError(error),
         clearProfile: true,
       );
+
       return false;
     }
   }
 
   Future<void> logout() async {
     await _repository.logout();
+
     state = state.copyWith(
+      isLoading: false,
       isAuthenticated: false,
       clearProfile: true,
       clearError: true,
@@ -185,17 +264,56 @@ class AuthController extends StateNotifier<AuthState> {
 
   String _parseError(Object error) {
     if (error is DioException) {
+      final statusCode = error.response?.statusCode;
       final data = error.response?.data;
-      if (data is Map && data['detail'] != null) {
-        return data['detail'].toString();
+
+      if (data is Map) {
+        if (data['detail'] != null) {
+          return data['detail'].toString();
+        }
+
+        if (data['non_field_errors'] is List &&
+            (data['non_field_errors'] as List).isNotEmpty) {
+          return (data['non_field_errors'] as List).first.toString();
+        }
+
+        if (data['username'] is List && (data['username'] as List).isNotEmpty) {
+          return (data['username'] as List).first.toString();
+        }
       }
-      return 'No se pudo completar la autenticación';
+
+      if (statusCode == 400 || statusCode == 401) {
+        return 'Usuario o contraseña incorrectos.';
+      }
+
+      if (statusCode == 403) {
+        return 'Tu usuario no tiene permiso para ingresar.';
+      }
+
+      if (statusCode != null && statusCode >= 500) {
+        return 'El servidor presenta un problema. Intenta nuevamente.';
+      }
+
+      if (error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout ||
+          error.type == DioExceptionType.sendTimeout) {
+        return 'El servidor tardó demasiado en responder.';
+      }
+
+      if (error.type == DioExceptionType.connectionError) {
+        return 'No se pudo conectar con el servidor.';
+      }
+
+      return 'No se pudo completar la autenticación.';
     }
-    return 'Error inesperado';
+
+    return 'Ocurrió un error inesperado.';
   }
 }
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
-  return AuthController(repository: ref.watch(authRepositoryProvider));
+  return AuthController(
+    repository: ref.watch(authRepositoryProvider),
+  );
 });
