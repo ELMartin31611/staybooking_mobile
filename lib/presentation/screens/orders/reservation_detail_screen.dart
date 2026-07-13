@@ -5,8 +5,10 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/model/reserva.dart';
 import '../../../theme/app_colors.dart';
+import '../../providers/billing_provider.dart';
 import '../../providers/reservation_provider.dart';
 import '../../widgets/price_summary.dart';
+import '../../widgets/reservation_billing_section.dart';
 import '../../widgets/reservation_guests_section.dart';
 import '../../widgets/reservation_rooms_section.dart';
 import '../../widgets/status_badge.dart';
@@ -34,6 +36,14 @@ class ReservationDetailScreen extends ConsumerWidget {
 
     ref.invalidate(
       huespedesReservaProvider(reservationId),
+    );
+
+    ref.invalidate(
+      pagosReservaProvider(reservationId),
+    );
+
+    ref.invalidate(
+      facturasReservaProvider(reservationId),
     );
 
     await ref.read(
@@ -90,25 +100,33 @@ class ReservationDetailScreen extends ConsumerWidget {
 
       ref.invalidate(reservasProvider);
 
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        return;
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Reserva cancelada correctamente',
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Reserva cancelada correctamente',
+            ),
           ),
-        ),
-      );
+        );
     } catch (_) {
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        return;
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'No se pudo cancelar la reserva',
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se pudo cancelar la reserva',
+            ),
           ),
-        ),
-      );
+        );
     }
   }
 
@@ -146,6 +164,9 @@ class ReservationDetailScreen extends ConsumerWidget {
               reservation.estado == ReservaEstado.confirmada;
 
           final canAddGuests = reservation.estado != ReservaEstado.cancelada &&
+              reservation.estado != ReservaEstado.finalizada;
+
+          final canPay = reservation.estado != ReservaEstado.cancelada &&
               reservation.estado != ReservaEstado.finalizada;
 
           return RefreshIndicator(
@@ -195,6 +216,11 @@ class ReservationDetailScreen extends ConsumerWidget {
                   taxes: reservation.impuestos,
                   discount: reservation.descuento,
                   total: reservation.total,
+                ),
+                const SizedBox(height: 24),
+                ReservationBillingSection(
+                  reservationId: reservation.id,
+                  canPay: canPay,
                 ),
                 if (reservation.observaciones?.trim().isNotEmpty ?? false) ...[
                   const SizedBox(height: 24),

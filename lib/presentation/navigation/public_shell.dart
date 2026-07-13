@@ -17,7 +17,11 @@ class PublicShell extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) {
-    final reservationCount = ref.watch(reservationCartProvider).totalItems;
+    final reservationCount = ref
+        .watch(
+          reservationCartProvider,
+        )
+        .totalItems;
 
     final location = GoRouterState.of(context).matchedLocation;
 
@@ -26,7 +30,9 @@ class PublicShell extends ConsumerWidget {
         return 1;
       }
 
-      if (location.startsWith('/reservas')) {
+      if (location.startsWith('/reservas') ||
+          location.startsWith('/pagos') ||
+          location.startsWith('/facturas')) {
         return 2;
       }
 
@@ -93,7 +99,9 @@ class PublicShell extends ConsumerWidget {
                   ),
               ],
             ),
-            activeIcon: const Icon(Icons.event_available),
+            activeIcon: const Icon(
+              Icons.event_available,
+            ),
             label: 'Reserva',
           ),
           const BottomNavigationBarItem(
