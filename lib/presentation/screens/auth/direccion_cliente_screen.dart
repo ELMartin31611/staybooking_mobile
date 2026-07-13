@@ -12,10 +12,12 @@ class DireccionClienteScreen extends ConsumerStatefulWidget {
   final int perfilId;
 
   @override
-  ConsumerState<DireccionClienteScreen> createState() => _DireccionClienteScreenState();
+  ConsumerState<DireccionClienteScreen> createState() =>
+      _DireccionClienteScreenState();
 }
 
-class _DireccionClienteScreenState extends ConsumerState<DireccionClienteScreen> {
+class _DireccionClienteScreenState
+    extends ConsumerState<DireccionClienteScreen> {
   final _formKey = GlobalKey<FormState>();
   final _provinciaController = TextEditingController();
   final _ciudadController = TextEditingController();
@@ -167,7 +169,8 @@ class _DireccionClienteScreenState extends ConsumerState<DireccionClienteScreen>
                   child: ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
-                      _Field(controller: _provinciaController, label: 'Provincia'),
+                      _Field(
+                          controller: _provinciaController, label: 'Provincia'),
                       const SizedBox(height: 14),
                       _Field(controller: _ciudadController, label: 'Ciudad'),
                       const SizedBox(height: 14),
@@ -181,7 +184,9 @@ class _DireccionClienteScreenState extends ConsumerState<DireccionClienteScreen>
                         label: 'Calle secundaria',
                       ),
                       const SizedBox(height: 14),
-                      _Field(controller: _referenciaController, label: 'Referencia'),
+                      _Field(
+                          controller: _referenciaController,
+                          label: 'Referencia'),
                       const SizedBox(height: 14),
                       _Field(
                         controller: _codigoPostalController,
@@ -206,7 +211,8 @@ class _DireccionClienteScreenState extends ConsumerState<DireccionClienteScreen>
                             ? const SizedBox(
                                 height: 18,
                                 width: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Text('Guardar dirección'),
                       ),

@@ -29,12 +29,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final ok = await ref.read(authControllerProvider.notifier).register(
-          payload: {
-            'username': _usernameController.text.trim(),
-            'email': _emailController.text.trim(),
-            'password': _passwordController.text,
-          },
-        );
+      payload: {
+        'username': _usernameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text,
+      },
+    );
 
     if (!mounted) return;
 

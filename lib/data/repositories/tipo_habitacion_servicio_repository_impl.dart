@@ -4,20 +4,17 @@ import '../datasources/remote/tipo_habitacion_servicio_remote_datasource.dart';
 
 class TipoHabitacionServicioRepositoryImpl
     implements TipoHabitacionServicioRepository {
-  final TipoHabitacionServicioRemoteDataSource
-      remoteDataSource;
+  final TipoHabitacionServicioRemoteDataSource remoteDataSource;
 
   const TipoHabitacionServicioRepositoryImpl(
     this.remoteDataSource,
   );
 
   @override
-  Future<TipoHabitacionServicioPage>
-      obtenerServiciosPorTipoHabitacion(
+  Future<TipoHabitacionServicioPage> obtenerServiciosPorTipoHabitacion(
     int tipoHabitacionId,
   ) {
-    return remoteDataSource
-        .obtenerServiciosPorTipoHabitacion(
+    return remoteDataSource.obtenerServiciosPorTipoHabitacion(
       tipoHabitacionId,
     );
   }

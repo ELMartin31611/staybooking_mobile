@@ -43,8 +43,7 @@ class HabitacionListScreen extends ConsumerWidget {
           final habitaciones = page.results
               .where(
                 (habitacion) =>
-                    habitacion.hotelId == null ||
-                    habitacion.hotelId == hotelId,
+                    habitacion.hotelId == null || habitacion.hotelId == hotelId,
               )
               .toList();
 
@@ -92,8 +91,7 @@ class HabitacionListScreen extends ConsumerWidget {
                               color: Theme.of(context)
                                   .colorScheme
                                   .primaryContainer,
-                              borderRadius:
-                                  BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
                               Icons.bed,
@@ -106,8 +104,7 @@ class HabitacionListScreen extends ConsumerWidget {
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   habitacion.numero.isEmpty
@@ -117,8 +114,7 @@ class HabitacionListScreen extends ConsumerWidget {
                                       .textTheme
                                       .titleMedium
                                       ?.copyWith(
-                                        fontWeight:
-                                            FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                 ),
                                 const SizedBox(height: 6),

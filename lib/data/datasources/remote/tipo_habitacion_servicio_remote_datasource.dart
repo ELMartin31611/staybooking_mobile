@@ -3,27 +3,23 @@ import 'package:dio/dio.dart';
 import '../../../domain/models/tipo_habitacion_servicio.dart';
 
 abstract class TipoHabitacionServicioRemoteDataSource {
-  Future<TipoHabitacionServicioPage>
-      obtenerServiciosPorTipoHabitacion(
+  Future<TipoHabitacionServicioPage> obtenerServiciosPorTipoHabitacion(
     int tipoHabitacionId,
   );
 }
 
 class TipoHabitacionServicioRemoteDataSourceImpl
-    implements
-        TipoHabitacionServicioRemoteDataSource {
+    implements TipoHabitacionServicioRemoteDataSource {
   final Dio dio;
 
-  static const String _endpoint =
-      'tipos-habitacion-servicios/';
+  static const String _endpoint = 'tipos-habitacion-servicios/';
 
   const TipoHabitacionServicioRemoteDataSourceImpl(
     this.dio,
   );
 
   @override
-  Future<TipoHabitacionServicioPage>
-      obtenerServiciosPorTipoHabitacion(
+  Future<TipoHabitacionServicioPage> obtenerServiciosPorTipoHabitacion(
     int tipoHabitacionId,
   ) async {
     final response = await dio.get(
@@ -33,8 +29,7 @@ class TipoHabitacionServicioRemoteDataSourceImpl
       },
     );
 
-    final page =
-        TipoHabitacionServicioPage.fromJson(
+    final page = TipoHabitacionServicioPage.fromJson(
       response.data,
     );
 
@@ -42,8 +37,7 @@ class TipoHabitacionServicioRemoteDataSourceImpl
         .where(
           (relacion) =>
               relacion.tipoHabitacionId == null ||
-              relacion.tipoHabitacionId ==
-                  tipoHabitacionId,
+              relacion.tipoHabitacionId == tipoHabitacionId,
         )
         .toList();
 

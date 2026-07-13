@@ -7,8 +7,7 @@ import '../../domain/repositories/tipo_habitacion_servicio_repository.dart';
 import 'auth_provider.dart';
 
 final tipoHabitacionServicioRemoteDataSourceProvider =
-    Provider<
-        TipoHabitacionServicioRemoteDataSource>(
+    Provider<TipoHabitacionServicioRemoteDataSource>(
   (ref) {
     final dio = ref.watch(
       authDioProvider,
@@ -34,15 +33,13 @@ final tipoHabitacionServicioRepositoryProvider =
 );
 
 final serviciosPorTipoHabitacionProvider =
-    FutureProvider.autoDispose.family<
-        TipoHabitacionServicioPage, int>(
+    FutureProvider.autoDispose.family<TipoHabitacionServicioPage, int>(
   (ref, tipoHabitacionId) {
     final repository = ref.watch(
       tipoHabitacionServicioRepositoryProvider,
     );
 
-    return repository
-        .obtenerServiciosPorTipoHabitacion(
+    return repository.obtenerServiciosPorTipoHabitacion(
       tipoHabitacionId,
     );
   },

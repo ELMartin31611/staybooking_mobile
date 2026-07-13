@@ -71,12 +71,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _ProfileRow(label: 'Estado', value: perfil?.estado),
             const SizedBox(height: 24),
             if (_loadingExtra)
-              const Center(child: Padding(
+              const Center(
+                  child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: CircularProgressIndicator(),
               ))
             else ...[
-              _SectionTitle(title: 'Cliente'),
+              const _SectionTitle(title: 'Cliente'),
               _ProfileRow(label: 'Cédula', value: _cliente?.cedula),
               _ProfileRow(label: 'Nombres', value: _cliente?.nombres),
               _ProfileRow(label: 'Apellidos', value: _cliente?.apellidos),
@@ -87,7 +88,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 value: _cliente?.correoAlternativo,
               ),
               const SizedBox(height: 20),
-              _SectionTitle(title: 'Dirección'),
+              const _SectionTitle(title: 'Dirección'),
               _ProfileRow(label: 'Provincia', value: _direccion?.provincia),
               _ProfileRow(label: 'Ciudad', value: _direccion?.ciudad),
               _ProfileRow(
@@ -99,7 +100,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 value: _direccion?.calleSecundaria,
               ),
               _ProfileRow(label: 'Referencia', value: _direccion?.referencia),
-              _ProfileRow(label: 'Código postal', value: _direccion?.codigoPostal),
+              _ProfileRow(
+                  label: 'Código postal', value: _direccion?.codigoPostal),
               const SizedBox(height: 24),
             ],
             OutlinedButton(
