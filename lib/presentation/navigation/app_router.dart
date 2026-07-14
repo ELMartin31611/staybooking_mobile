@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/auth_provider.dart';
+import '../screens/admin/admin_dashboard_screen.dart';
+import '../screens/admin/admin_hotels_screen.dart';
+import '../screens/admin/admin_rooms_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/profile_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -72,9 +75,7 @@ class _PlaceholderScreen extends ConsumerWidget {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await ref
-                  .read(
-                    authControllerProvider.notifier,
-                  )
+                  .read(authControllerProvider.notifier)
                   .logout();
             },
           ),
@@ -132,7 +133,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return location == '/splash' ? null : '/splash';
       }
 
-      final isAuthRoute = location == '/login' || location == '/register';
+      final isAuthRoute =
+          location == '/login' || location == '/register';
 
       final isSplash = location == '/splash';
 
@@ -221,7 +223,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(
-            path: '/hoteles/:hotelId/tipos-habitacion/:tipoId/habitaciones',
+            path:
+                '/hoteles/:hotelId/tipos-habitacion/:tipoId/habitaciones',
             builder: (context, state) {
               final hotelId = int.tryParse(
                 state.pathParameters['hotelId'] ?? '',
@@ -238,7 +241,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               }
 
               final roomTypeName =
-                  state.uri.queryParameters['nombre'] ?? 'Habitaciones';
+                  state.uri.queryParameters['nombre'] ??
+                      'Habitaciones';
 
               return HabitacionListScreen(
                 hotelId: hotelId,
@@ -456,33 +460,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin',
         builder: (context, state) {
-          return const _PlaceholderScreen(
-            'Dashboard administrativo',
-          );
+          return const AdminDashboardScreen();
         },
       ),
       GoRoute(
         path: '/admin/hoteles',
         builder: (context, state) {
-          return const _PlaceholderScreen(
-            'Administrar hoteles',
-          );
+          return const AdminHotelsScreen();
         },
       ),
       GoRoute(
         path: '/admin/habitaciones',
         builder: (context, state) {
-          return const _PlaceholderScreen(
-            'Administrar habitaciones',
-          );
+          return const AdminRoomsScreen();
         },
       ),
       GoRoute(
         path: '/admin/reservas',
         builder: (context, state) {
-          return const _PlaceholderScreen(
-            'Administrar reservas',
-          );
+          return const MyReservationsScreen();
         },
       ),
       GoRoute(
