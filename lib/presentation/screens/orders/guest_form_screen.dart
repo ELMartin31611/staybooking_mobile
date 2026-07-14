@@ -23,8 +23,7 @@ class GuestFormScreen extends ConsumerStatefulWidget {
   }
 }
 
-class _GuestFormScreenState
-    extends ConsumerState<GuestFormScreen> {
+class _GuestFormScreenState extends ConsumerState<GuestFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _namesController = TextEditingController();
@@ -55,8 +54,7 @@ class _GuestFormScreenState
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          backgroundColor:
-              isError ? AppColors.error : null,
+          backgroundColor: isError ? AppColors.error : null,
           content: Text(message),
         ),
       );
@@ -74,8 +72,7 @@ class _GuestFormScreenState
     }
 
     final maximumGuests =
-        reservation.cantidadAdultos +
-        reservation.cantidadNinos;
+        reservation.cantidadAdultos + reservation.cantidadNinos;
 
     if (guests.length >= maximumGuests) {
       throw _GuestValidationException(
@@ -92,12 +89,9 @@ class _GuestFormScreenState
       return guestAge != null && guestAge <= 12;
     }).length;
 
-    final registeredAdults =
-        guests.length - registeredChildren;
+    final registeredAdults = guests.length - registeredChildren;
 
-    if (isChild &&
-        registeredChildren >=
-            reservation.cantidadNinos) {
+    if (isChild && registeredChildren >= reservation.cantidadNinos) {
       throw _GuestValidationException(
         reservation.cantidadNinos == 0
             ? 'Esta reserva no incluye cupos para niños.'
@@ -106,17 +100,14 @@ class _GuestFormScreenState
       );
     }
 
-    if (!isChild &&
-        registeredAdults >=
-            reservation.cantidadAdultos) {
-      throw _GuestValidationException(
+    if (!isChild && registeredAdults >= reservation.cantidadAdultos) {
+      throw const _GuestValidationException(
         'Ya se registraron todos los adultos '
         'incluidos en la reserva.',
       );
     }
 
-    if (_isHolder &&
-        guests.any((guest) => guest.esTitular)) {
+    if (_isHolder && guests.any((guest) => guest.esTitular)) {
       throw const _GuestValidationException(
         'La reserva ya tiene un huésped titular.',
       );
@@ -126,8 +117,7 @@ class _GuestFormScreenState
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
 
-    if (_isSubmitting ||
-        !_formKey.currentState!.validate()) {
+    if (_isSubmitting || !_formKey.currentState!.validate()) {
       return;
     }
 
@@ -165,8 +155,7 @@ class _GuestFormScreenState
         nombres: _namesController.text,
         apellidos: _lastNamesController.text,
         tipoDocumento: _documentType,
-        numeroDocumento:
-            _documentController.text,
+        numeroDocumento: _documentController.text,
         edad: age,
         telefono: phone.isEmpty ? null : phone,
         esTitular: _isHolder,
@@ -261,28 +250,23 @@ class _GuestFormScreenState
       ),
     );
 
-    final reservation =
-        reservationAsync.asData?.value;
+    final reservation = reservationAsync.asData?.value;
 
     final guests = guestsAsync.asData?.value;
 
     final maximumGuests = reservation == null
         ? null
-        : reservation.cantidadAdultos +
-            reservation.cantidadNinos;
+        : reservation.cantidadAdultos + reservation.cantidadNinos;
 
     final isFull = maximumGuests != null &&
         guests != null &&
         guests.length >= maximumGuests;
 
-    final isReservationPending =
-        reservation?.estado ==
-            ReservaEstado.pendiente;
+    final isReservationPending = reservation?.estado == ReservaEstado.pendiente;
 
     final canSubmit = !_isSubmitting &&
         !isFull &&
-        (reservation == null ||
-            isReservationPending);
+        (reservation == null || isReservationPending);
 
     return Scaffold(
       appBar: AppBar(
@@ -302,21 +286,17 @@ class _GuestFormScreenState
               _GuestQuotaCard(
                 reservation: reservation,
                 guests: guests,
-                isLoading:
-                    reservationAsync.isLoading ||
-                    guestsAsync.isLoading,
+                isLoading: reservationAsync.isLoading || guestsAsync.isLoading,
               ),
               const SizedBox(height: 24),
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: AppColors.primarySoft,
-                  borderRadius:
-                      BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Row(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.badge_outlined,
@@ -330,11 +310,9 @@ class _GuestFormScreenState
                         'De 0 a 12 años se considera niño; '
                         'mayor de 12 años se considera adulto.',
                         style: TextStyle(
-                          color:
-                              AppColors.textPrimary,
+                          color: AppColors.textPrimary,
                           height: 1.4,
-                          fontWeight:
-                              FontWeight.w600,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -345,8 +323,7 @@ class _GuestFormScreenState
               TextFormField(
                 controller: _namesController,
                 enabled: canSubmit,
-                textCapitalization:
-                    TextCapitalization.words,
+                textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   labelText: 'Nombres',
                   prefixIcon: Icon(
@@ -359,8 +336,7 @@ class _GuestFormScreenState
               TextFormField(
                 controller: _lastNamesController,
                 enabled: canSubmit,
-                textCapitalization:
-                    TextCapitalization.words,
+                textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   labelText: 'Apellidos',
                   prefixIcon: Icon(
@@ -416,21 +392,17 @@ class _GuestFormScreenState
               ),
               const SizedBox(height: 16),
               Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: TextFormField(
                       controller: _ageController,
                       enabled: canSubmit,
-                      keyboardType:
-                          TextInputType.number,
+                      keyboardType: TextInputType.number,
                       inputFormatters: [
-                        FilteringTextInputFormatter
-                            .digitsOnly,
+                        FilteringTextInputFormatter.digitsOnly,
                       ],
-                      decoration:
-                          const InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Edad',
                         prefixIcon: Icon(
                           Icons.cake_outlined,
@@ -444,16 +416,13 @@ class _GuestFormScreenState
                     child: TextFormField(
                       controller: _phoneController,
                       enabled: canSubmit,
-                      keyboardType:
-                          TextInputType.phone,
+                      keyboardType: TextInputType.phone,
                       inputFormatters: [
-                        FilteringTextInputFormatter
-                            .allow(
+                        FilteringTextInputFormatter.allow(
                           RegExp(r'[0-9+ -]'),
                         ),
                       ],
-                      decoration:
-                          const InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Teléfono',
                         prefixIcon: Icon(
                           Icons.phone_outlined,
@@ -467,18 +436,15 @@ class _GuestFormScreenState
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius:
-                      BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: AppColors.border,
                   ),
                 ),
                 child: SwitchListTile(
                   value: _isHolder,
-                  activeThumbColor:
-                      AppColors.primary,
-                  activeTrackColor:
-                      AppColors.primarySoft,
+                  activeThumbColor: AppColors.primary,
+                  activeTrackColor: AppColors.primarySoft,
                   title: const Text(
                     'Huésped titular',
                     style: TextStyle(
@@ -502,24 +468,20 @@ class _GuestFormScreenState
               SizedBox(
                 height: 54,
                 child: FilledButton.icon(
-                  onPressed:
-                      canSubmit ? _submit : null,
+                  onPressed: canSubmit ? _submit : null,
                   icon: _isSubmitting
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child:
-                              CircularProgressIndicator(
+                          child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: AppColors.surface,
                           ),
                         )
                       : Icon(
                           isFull
-                              ? Icons
-                                  .check_circle_rounded
-                              : Icons
-                                  .person_add_alt_1_rounded,
+                              ? Icons.check_circle_rounded
+                              : Icons.person_add_alt_1_rounded,
                         ),
                   label: Text(
                     _isSubmitting
@@ -551,9 +513,7 @@ class _GuestQuotaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading ||
-        reservation == null ||
-        guests == null) {
+    if (isLoading || reservation == null || guests == null) {
       return Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
@@ -581,55 +541,40 @@ class _GuestQuotaCard extends StatelessWidget {
       );
     }
 
-    final registeredChildren =
-        guests!.where((guest) {
+    final registeredChildren = guests!.where((guest) {
       final age = guest.edad;
 
       return age != null && age <= 12;
     }).length;
 
-    final registeredAdults =
-        guests!.length - registeredChildren;
+    final registeredAdults = guests!.length - registeredChildren;
 
     final maximumGuests =
-        reservation!.cantidadAdultos +
-        reservation!.cantidadNinos;
+        reservation!.cantidadAdultos + reservation!.cantidadNinos;
 
-    final isFull =
-        guests!.length >= maximumGuests;
+    final isFull = guests!.length >= maximumGuests;
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isFull
-            ? AppColors.successSoft
-            : AppColors.infoSoft,
+        color: isFull ? AppColors.successSoft : AppColors.infoSoft,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Icon(
-                isFull
-                    ? Icons.check_circle_rounded
-                    : Icons.groups_outlined,
-                color: isFull
-                    ? AppColors.success
-                    : AppColors.info,
+                isFull ? Icons.check_circle_rounded : Icons.groups_outlined,
+                color: isFull ? AppColors.success : AppColors.info,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  isFull
-                      ? 'Cupo completo'
-                      : 'Cupos de la reserva',
+                  isFull ? 'Cupo completo' : 'Cupos de la reserva',
                   style: TextStyle(
-                    color: isFull
-                        ? AppColors.success
-                        : AppColors.info,
+                    color: isFull ? AppColors.success : AppColors.info,
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
                   ),
@@ -638,9 +583,7 @@ class _GuestQuotaCard extends StatelessWidget {
               Text(
                 '${guests!.length}/$maximumGuests',
                 style: TextStyle(
-                  color: isFull
-                      ? AppColors.success
-                      : AppColors.info,
+                  color: isFull ? AppColors.success : AppColors.info,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -650,15 +593,13 @@ class _GuestQuotaCard extends StatelessWidget {
           _QuotaRow(
             label: 'Adultos',
             registered: registeredAdults,
-            maximum:
-                reservation!.cantidadAdultos,
+            maximum: reservation!.cantidadAdultos,
           ),
           const SizedBox(height: 8),
           _QuotaRow(
             label: 'Niños',
             registered: registeredChildren,
-            maximum:
-                reservation!.cantidadNinos,
+            maximum: reservation!.cantidadNinos,
           ),
         ],
       ),
