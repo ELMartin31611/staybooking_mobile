@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../providers/auth_provider.dart';
 import '../providers/reservation_cart_provider.dart';
 
 class PublicShell extends ConsumerWidget {
@@ -17,11 +18,19 @@ class PublicShell extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) {
-    final reservationCount = ref
-        .watch(
-          reservationCartProvider,
-        )
-        .totalItems;
+    final reservationCount = ref.watch(reservationCartProvider).totalItems;
+
+    final role =
+        ref.watch(authControllerProvider).profile?.rol.toUpperCase() ?? '';
+
+    final isStaff = const {
+      'ADMIN',
+      'ADMINISTRADOR',
+      'SUPERADMIN',
+      'SUPER_ADMIN',
+      'STAFF',
+      'EMPLEADO',
+    }.contains(role);
 
     final location = GoRouterState.of(context).matchedLocation;
 
@@ -42,6 +51,10 @@ class PublicShell extends ConsumerWidget {
 
       if (location.startsWith('/perfil')) {
         return 4;
+      }
+
+      if (isStaff && location.startsWith('/admin')) {
+        return 5;
       }
 
       return 0;
@@ -72,9 +85,7 @@ class PublicShell extends ConsumerWidget {
             icon: Stack(
               clipBehavior: Clip.none,
               children: [
-                const Icon(
-                  Icons.event_available_outlined,
-                ),
+                const Icon(Icons.event_available_outlined),
                 if (reservationCount > 0)
                   Positioned(
                     right: -8,
@@ -99,9 +110,7 @@ class PublicShell extends ConsumerWidget {
                   ),
               ],
             ),
-            activeIcon: const Icon(
-              Icons.event_available,
-            ),
+            activeIcon: const Icon(Icons.event_available),
             label: 'Reserva',
           ),
           const BottomNavigationBarItem(
@@ -109,6 +118,16 @@ class PublicShell extends ConsumerWidget {
             activeIcon: Icon(Icons.person),
             label: 'Perfil',
           ),
+          if (isStaff)
+            const BottomNavigationBarItem(
+              icon: Icon(
+                Icons.admin_panel_settings_outlined,
+              ),
+              activeIcon: Icon(
+                Icons.admin_panel_settings_rounded,
+              ),
+              label: 'Dashboard',
+            ),
         ],
         onTap: (index) {
           switch (index) {
@@ -126,6 +145,11 @@ class PublicShell extends ConsumerWidget {
               break;
             case 4:
               context.go('/perfil');
+              break;
+            case 5:
+              if (isStaff) {
+                context.go('/admin');
+              }
               break;
           }
         },
