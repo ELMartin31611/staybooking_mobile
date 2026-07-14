@@ -18,12 +18,17 @@ import '../screens/catalog/tipo_habitacion_cama_screen.dart';
 import '../screens/catalog/tipo_habitacion_servicio_screen.dart';
 import '../screens/orders/create_reservation_screen.dart';
 import '../screens/orders/guest_form_screen.dart';
+import '../screens/orders/invoice_detail_screen.dart';
+import '../screens/orders/invoices_screen.dart';
 import '../screens/orders/my_reservations_screen.dart';
+import '../screens/orders/payment_detail_screen.dart';
+import '../screens/orders/payment_form_screen.dart';
+import '../screens/orders/payments_screen.dart';
 import '../screens/orders/reservation_detail_screen.dart';
 import 'public_shell.dart';
 
 bool _isStaff(AuthState auth) {
-  final rol = auth.profile?.rol.toUpperCase() ?? '';
+  final role = auth.profile?.rol.toUpperCase() ?? '';
 
   return const {
     'ADMIN',
@@ -32,7 +37,7 @@ bool _isStaff(AuthState auth) {
     'SUPER_ADMIN',
     'STAFF',
     'EMPLEADO',
-  }.contains(rol);
+  }.contains(role);
 }
 
 class _SplashScreen extends StatelessWidget {
@@ -88,6 +93,30 @@ class _PlaceholderScreen extends ConsumerWidget {
   }
 }
 
+class _InvalidRouteScreen extends StatelessWidget {
+  const _InvalidRouteScreen({
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
@@ -104,6 +133,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       final isAuthRoute = location == '/login' || location == '/register';
+
       final isSplash = location == '/splash';
 
       if (isSplash) {
@@ -180,10 +210,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
 
               if (hotelId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text('Hotel inválido'),
-                  ),
+                return const _InvalidRouteScreen(
+                  message: 'Hotel inválido',
                 );
               }
 
@@ -199,67 +227,59 @@ final routerProvider = Provider<GoRouter>((ref) {
                 state.pathParameters['hotelId'] ?? '',
               );
 
-              final tipoId = int.tryParse(
+              final roomTypeId = int.tryParse(
                 state.pathParameters['tipoId'] ?? '',
               );
 
-              if (hotelId == null || tipoId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text(
-                      'Datos de habitaciones inválidos',
-                    ),
-                  ),
+              if (hotelId == null || roomTypeId == null) {
+                return const _InvalidRouteScreen(
+                  message: 'Los datos de las habitaciones son inválidos',
                 );
               }
 
-              final tipoNombre =
+              final roomTypeName =
                   state.uri.queryParameters['nombre'] ?? 'Habitaciones';
 
               return HabitacionListScreen(
                 hotelId: hotelId,
-                tipoHabitacionId: tipoId,
-                tipoNombre: tipoNombre,
+                tipoHabitacionId: roomTypeId,
+                tipoNombre: roomTypeName,
               );
             },
           ),
           GoRoute(
             path: '/habitaciones/:id/imagenes',
             builder: (context, state) {
-              final habitacionId = int.tryParse(
+              final roomId = int.tryParse(
                 state.pathParameters['id'] ?? '',
               );
 
-              if (habitacionId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text('Habitación inválida'),
-                  ),
+              if (roomId == null) {
+                return const _InvalidRouteScreen(
+                  message: 'Habitación inválida',
                 );
               }
 
               return ImagenHabitacionScreen(
-                habitacionId: habitacionId,
+                habitacionId: roomId,
               );
             },
           ),
           GoRoute(
             path: '/habitaciones/:id',
             builder: (context, state) {
-              final habitacionId = int.tryParse(
+              final roomId = int.tryParse(
                 state.pathParameters['id'] ?? '',
               );
 
-              if (habitacionId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text('Habitación inválida'),
-                  ),
+              if (roomId == null) {
+                return const _InvalidRouteScreen(
+                  message: 'Habitación inválida',
                 );
               }
 
               return HabitacionDetailScreen(
-                habitacionId: habitacionId,
+                habitacionId: roomId,
               );
             },
           ),
@@ -272,22 +292,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/tipos-habitacion/:tipoId/camas',
             builder: (context, state) {
-              final tipoId = int.tryParse(
+              final roomTypeId = int.tryParse(
                 state.pathParameters['tipoId'] ?? '',
               );
 
-              if (tipoId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text(
-                      'Tipo de habitación inválido',
-                    ),
-                  ),
+              if (roomTypeId == null) {
+                return const _InvalidRouteScreen(
+                  message: 'Tipo de habitación inválido',
                 );
               }
 
               return TipoHabitacionCamaScreen(
-                tipoHabitacionId: tipoId,
+                tipoHabitacionId: roomTypeId,
               );
             },
           ),
@@ -300,22 +316,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/tipos-habitacion/:tipoId/servicios',
             builder: (context, state) {
-              final tipoId = int.tryParse(
+              final roomTypeId = int.tryParse(
                 state.pathParameters['tipoId'] ?? '',
               );
 
-              if (tipoId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text(
-                      'Tipo de habitación inválido',
-                    ),
-                  ),
+              if (roomTypeId == null) {
+                return const _InvalidRouteScreen(
+                  message: 'Tipo de habitación inválido',
                 );
               }
 
               return TipoHabitacionServicioScreen(
-                tipoHabitacionId: tipoId,
+                tipoHabitacionId: roomTypeId,
               );
             },
           ),
@@ -333,14 +345,30 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
 
               if (reservationId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text('Reserva inválida'),
-                  ),
+                return const _InvalidRouteScreen(
+                  message: 'Reserva inválida',
                 );
               }
 
               return GuestFormScreen(
+                reservationId: reservationId,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/reservas/:id/pagar',
+            builder: (context, state) {
+              final reservationId = int.tryParse(
+                state.pathParameters['id'] ?? '',
+              );
+
+              if (reservationId == null) {
+                return const _InvalidRouteScreen(
+                  message: 'Reserva inválida',
+                );
+              }
+
+              return PaymentFormScreen(
                 reservationId: reservationId,
               );
             },
@@ -353,10 +381,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
 
               if (reservationId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text('Reserva inválida'),
-                  ),
+                return const _InvalidRouteScreen(
+                  message: 'Reserva inválida',
                 );
               }
 
@@ -369,6 +395,54 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/reserva',
             builder: (context, state) {
               return const CreateReservationScreen();
+            },
+          ),
+          GoRoute(
+            path: '/pagos',
+            builder: (context, state) {
+              return const PaymentsScreen();
+            },
+          ),
+          GoRoute(
+            path: '/pagos/:id',
+            builder: (context, state) {
+              final paymentId = int.tryParse(
+                state.pathParameters['id'] ?? '',
+              );
+
+              if (paymentId == null) {
+                return const _InvalidRouteScreen(
+                  message: 'Pago inválido',
+                );
+              }
+
+              return PaymentDetailScreen(
+                paymentId: paymentId,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/facturas',
+            builder: (context, state) {
+              return const InvoicesScreen();
+            },
+          ),
+          GoRoute(
+            path: '/facturas/:id',
+            builder: (context, state) {
+              final invoiceId = int.tryParse(
+                state.pathParameters['id'] ?? '',
+              );
+
+              if (invoiceId == null) {
+                return const _InvalidRouteScreen(
+                  message: 'Factura inválida',
+                );
+              }
+
+              return InvoiceDetailScreen(
+                invoiceId: invoiceId,
+              );
             },
           ),
           GoRoute(
@@ -433,4 +507,3 @@ class _AuthStateListenable extends ChangeNotifier {
     );
   }
 }
-

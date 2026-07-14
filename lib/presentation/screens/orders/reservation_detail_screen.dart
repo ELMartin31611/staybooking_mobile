@@ -5,8 +5,10 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/model/reserva.dart';
 import '../../../theme/app_colors.dart';
+import '../../providers/billing_provider.dart';
 import '../../providers/reservation_provider.dart';
 import '../../widgets/price_summary.dart';
+import '../../widgets/reservation_billing_section.dart';
 import '../../widgets/reservation_guests_section.dart';
 import '../../widgets/reservation_rooms_section.dart';
 import '../../widgets/status_badge.dart';
@@ -34,6 +36,14 @@ class ReservationDetailScreen extends ConsumerWidget {
 
     ref.invalidate(
       huespedesReservaProvider(reservationId),
+    );
+
+    ref.invalidate(
+      pagosReservaProvider(reservationId),
+    );
+
+    ref.invalidate(
+      facturasReservaProvider(reservationId),
     );
 
     await ref.read(
@@ -67,7 +77,9 @@ class ReservationDetailScreen extends ConsumerWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.error,
               ),
-              child: const Text('Cancelar reserva'),
+              child: const Text(
+                'Cancelar reserva',
+              ),
             ),
           ],
         );
@@ -142,11 +154,24 @@ class ReservationDetailScreen extends ConsumerWidget {
           },
         ),
         data: (reservation) {
-          final canCancel = reservation.estado == ReservaEstado.pendiente ||
-              reservation.estado == ReservaEstado.confirmada;
+          final maximumGuests =
+              reservation.cantidadAdultos + reservation.cantidadNinos;
 
-          final canAddGuests = reservation.estado != ReservaEstado.cancelada &&
-              reservation.estado != ReservaEstado.finalizada;
+          final registeredGuests = guestsAsync.asData?.value.length;
+
+          final guestsAreComplete =
+              registeredGuests != null && registeredGuests == maximumGuests;
+
+          final guestsExceeded =
+              registeredGuests != null && registeredGuests > maximumGuests;
+
+          final isPending = reservation.estado == ReservaEstado.pendiente;
+
+          final canAddGuests = isPending &&
+              registeredGuests != null &&
+              registeredGuests < maximumGuests;
+
+          final canCancel = isPending;
 
           return RefreshIndicator(
             onRefresh: () => _refresh(ref),
@@ -184,10 +209,18 @@ class ReservationDetailScreen extends ConsumerWidget {
                   onAdd: canAddGuests
                       ? () {
                           context.push(
-                            '/reservas/$reservationId/huespedes/nuevo',
+                            '/reservas/'
+                            '$reservationId/'
+                            'huespedes/nuevo',
                           );
                         }
                       : null,
+                ),
+                const SizedBox(height: 12),
+                _GuestCapacityCard(
+                  registeredGuests: registeredGuests,
+                  maximumGuests: maximumGuests,
+                  exceeded: guestsExceeded,
                 ),
                 const SizedBox(height: 24),
                 PriceSummary(
@@ -195,6 +228,28 @@ class ReservationDetailScreen extends ConsumerWidget {
                   taxes: reservation.impuestos,
                   discount: reservation.descuento,
                   total: reservation.total,
+                ),
+                if (isPending) ...[
+                  const SizedBox(height: 24),
+                  _PendingPaymentCard(
+                    registeredGuests: registeredGuests,
+                    maximumGuests: maximumGuests,
+                    guestsAreComplete: guestsAreComplete,
+                    guestsExceeded: guestsExceeded,
+                    total: reservation.total,
+                    onPay: guestsAreComplete && !guestsExceeded
+                        ? () {
+                            context.push(
+                              '/reservas/'
+                              '$reservationId/pagar',
+                            );
+                          }
+                        : null,
+                  ),
+                ],
+                const SizedBox(height: 24),
+                ReservationBillingSection(
+                  reservationId: reservation.id,
                 ),
                 if (reservation.observaciones?.trim().isNotEmpty ?? false) ...[
                   const SizedBox(height: 24),
@@ -204,24 +259,27 @@ class ReservationDetailScreen extends ConsumerWidget {
                 ],
                 if (canCancel) ...[
                   const SizedBox(height: 28),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      _cancelReservation(
-                        context,
-                        ref,
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.error,
-                      side: const BorderSide(
-                        color: AppColors.error,
+                  SizedBox(
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        _cancelReservation(
+                          context,
+                          ref,
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                        side: const BorderSide(
+                          color: AppColors.error,
+                        ),
                       ),
-                    ),
-                    icon: const Icon(
-                      Icons.cancel_outlined,
-                    ),
-                    label: const Text(
-                      'Cancelar reserva',
+                      icon: const Icon(
+                        Icons.cancel_outlined,
+                      ),
+                      label: const Text(
+                        'Cancelar reserva',
+                      ),
                     ),
                   ),
                 ],
@@ -367,7 +425,8 @@ class _StayInformation extends StatelessWidget {
               ),
               const SizedBox(width: 9),
               Text(
-                '$nights ${nights == 1 ? 'noche' : 'noches'}',
+                '$nights '
+                '${nights == 1 ? 'noche' : 'noches'}',
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                 ),
@@ -380,8 +439,11 @@ class _StayInformation extends StatelessWidget {
               const SizedBox(width: 9),
               Flexible(
                 child: Text(
-                  '$adults adultos'
-                  '${childrenCount > 0 ? ', $childrenCount niños' : ''}',
+                  '$adults '
+                  '${adults == 1 ? 'adulto' : 'adultos'}'
+                  '${childrenCount > 0 ? ', '
+                      '$childrenCount '
+                      '${childrenCount == 1 ? 'niño' : 'niños'}' : ''}',
                   textAlign: TextAlign.end,
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
@@ -424,6 +486,217 @@ class _DateItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _GuestCapacityCard extends StatelessWidget {
+  const _GuestCapacityCard({
+    required this.registeredGuests,
+    required this.maximumGuests,
+    required this.exceeded,
+  });
+
+  final int? registeredGuests;
+  final int maximumGuests;
+  final bool exceeded;
+
+  @override
+  Widget build(BuildContext context) {
+    if (registeredGuests == null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            ),
+            SizedBox(width: 11),
+            Text(
+              'Comprobando cupos de huéspedes...',
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isComplete = registeredGuests == maximumGuests;
+
+    final color = exceeded
+        ? AppColors.error
+        : isComplete
+            ? AppColors.success
+            : AppColors.info;
+
+    final backgroundColor = exceeded
+        ? AppColors.errorSoft
+        : isComplete
+            ? AppColors.successSoft
+            : AppColors.infoSoft;
+
+    final message = exceeded
+        ? 'Hay más huéspedes registrados que cupos comprados.'
+        : isComplete
+            ? 'Cupo completo: '
+                '$registeredGuests de $maximumGuests huéspedes.'
+            : 'Huéspedes registrados: '
+                '$registeredGuests de $maximumGuests.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            exceeded
+                ? Icons.error_outline_rounded
+                : isComplete
+                    ? Icons.check_circle_rounded
+                    : Icons.groups_outlined,
+            color: color,
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingPaymentCard extends StatelessWidget {
+  const _PendingPaymentCard({
+    required this.registeredGuests,
+    required this.maximumGuests,
+    required this.guestsAreComplete,
+    required this.guestsExceeded,
+    required this.total,
+    required this.onPay,
+  });
+
+  final int? registeredGuests;
+  final int maximumGuests;
+  final bool guestsAreComplete;
+  final bool guestsExceeded;
+  final double total;
+  final VoidCallback? onPay;
+
+  @override
+  Widget build(BuildContext context) {
+    String message;
+
+    if (registeredGuests == null) {
+      message = 'Estamos comprobando los huéspedes registrados.';
+    } else if (guestsExceeded) {
+      message = 'Corrige la cantidad de huéspedes antes de pagar.';
+    } else if (!guestsAreComplete) {
+      final missing = maximumGuests - registeredGuests!;
+
+      message = 'Falta registrar $missing '
+          '${missing == 1 ? 'huésped' : 'huéspedes'} '
+          'antes de pagar.';
+    } else {
+      message = 'Todos los huéspedes están registrados. '
+          'Puedes completar el pago.';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: guestsAreComplete && !guestsExceeded
+              ? AppColors.primary
+              : AppColors.border,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.lock_outline_rounded,
+                color: AppColors.primary,
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Completar compra',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Text(
+                'Total a pagar',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                NumberFormat.currency(
+                  locale: 'en_US',
+                  symbol: r'$',
+                  decimalDigits: 2,
+                ).format(total),
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: FilledButton.icon(
+              onPressed: onPay,
+              icon: const Icon(
+                Icons.payment_rounded,
+              ),
+              label: const Text(
+                'Pagar reserva',
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -512,7 +785,9 @@ class _DetailError extends StatelessWidget {
               icon: const Icon(
                 Icons.refresh_rounded,
               ),
-              label: const Text('Reintentar'),
+              label: const Text(
+                'Reintentar',
+              ),
             ),
           ],
         ),
