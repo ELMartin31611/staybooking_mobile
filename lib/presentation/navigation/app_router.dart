@@ -53,30 +53,6 @@ class _SplashScreen extends StatelessWidget {
   }
 }
 
-class _InvalidRouteScreen extends StatelessWidget {
-  const _InvalidRouteScreen({
-    required this.message,
-  });
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            message,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _PlaceholderScreen extends ConsumerWidget {
   const _PlaceholderScreen(this.title);
 
@@ -111,6 +87,30 @@ class _PlaceholderScreen extends ConsumerWidget {
             fontSize: 18,
           ),
           textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
+class _InvalidRouteScreen extends StatelessWidget {
+  const _InvalidRouteScreen({
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );
@@ -233,7 +233,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
               if (hotelId == null || roomTypeId == null) {
                 return const _InvalidRouteScreen(
-                  message: 'Datos de habitaciones inválidos',
+                  message: 'Los datos de las habitaciones son inválidos',
                 );
               }
 
@@ -392,15 +392,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(
+            path: '/reserva',
+            builder: (context, state) {
+              return const CreateReservationScreen();
+            },
+          ),
+          GoRoute(
             path: '/pagos',
             builder: (context, state) {
-              final reservationId = int.tryParse(
-                state.uri.queryParameters['reserva'] ?? '',
-              );
-
-              return PaymentsScreen(
-                reservationId: reservationId,
-              );
+              return const PaymentsScreen();
             },
           ),
           GoRoute(
@@ -424,13 +424,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/facturas',
             builder: (context, state) {
-              final reservationId = int.tryParse(
-                state.uri.queryParameters['reserva'] ?? '',
-              );
-
-              return InvoicesScreen(
-                reservationId: reservationId,
-              );
+              return const InvoicesScreen();
             },
           ),
           GoRoute(
@@ -449,12 +443,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               return InvoiceDetailScreen(
                 invoiceId: invoiceId,
               );
-            },
-          ),
-          GoRoute(
-            path: '/reserva',
-            builder: (context, state) {
-              return const CreateReservationScreen();
             },
           ),
           GoRoute(

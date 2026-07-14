@@ -25,6 +25,7 @@ class CreateReservationScreen extends ConsumerStatefulWidget {
 class _CreateReservationScreenState
     extends ConsumerState<CreateReservationScreen> {
   static const double _taxRate = 0.12;
+  static const double _childRatePercentage = 0.50;
 
   final _notesController = TextEditingController();
 
@@ -53,14 +54,14 @@ class _CreateReservationScreenState
     Habitacion room,
     List<TarifaHabitacion> rates,
   ) {
-    final typeId = room.tipoHabitacionId;
+    final roomTypeId = room.tipoHabitacionId;
 
-    if (typeId == null) {
+    if (roomTypeId == null) {
       return null;
     }
 
     for (final rate in rates) {
-      if (rate.tipoHabitacionId == typeId && rate.isActive) {
+      if (rate.tipoHabitacionId == roomTypeId && rate.isActive) {
         return rate;
       }
     }
@@ -68,7 +69,18 @@ class _CreateReservationScreenState
     return null;
   }
 
-  double _subtotal(
+  double _baseNightlyPrice(
+    List<Habitacion> rooms,
+    List<TarifaHabitacion> rates,
+  ) {
+    return rooms.fold<double>(0, (total, room) {
+      final rate = _findRate(room, rates);
+
+      return total + (rate?.precioNoche ?? 0);
+    });
+  }
+
+  double _baseStayPrice(
     List<Habitacion> rooms,
     List<TarifaHabitacion> rates,
   ) {
@@ -76,11 +88,28 @@ class _CreateReservationScreenState
       return 0;
     }
 
-    return rooms.fold<double>(0, (total, room) {
-      final rate = _findRate(room, rates);
+    return _baseNightlyPrice(rooms, rates) * _nights;
+  }
 
-      return total + ((rate?.precioNoche ?? 0) * _nights);
-    });
+  double _adultSubtotal(
+    List<Habitacion> rooms,
+    List<TarifaHabitacion> rates,
+  ) {
+    return _baseStayPrice(rooms, rates) * _adults;
+  }
+
+  double _childrenSubtotal(
+    List<Habitacion> rooms,
+    List<TarifaHabitacion> rates,
+  ) {
+    return _baseStayPrice(rooms, rates) * _children * _childRatePercentage;
+  }
+
+  double _subtotal(
+    List<Habitacion> rooms,
+    List<TarifaHabitacion> rates,
+  ) {
+    return _adultSubtotal(rooms, rates) + _childrenSubtotal(rooms, rates);
   }
 
   Future<void> _selectDates() async {
@@ -133,7 +162,9 @@ class _CreateReservationScreenState
         currentClienteProvider.future,
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       if (client == null) {
         _showMessage(
@@ -150,7 +181,9 @@ class _CreateReservationScreenState
         tarifasHabitacionProvider.future,
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       if (rooms.isEmpty) {
         _showMessage(
@@ -162,7 +195,8 @@ class _CreateReservationScreenState
       for (final room in rooms) {
         if (_findRate(room, rates) == null) {
           _showMessage(
-            'No encontramos una tarifa activa para la habitación ${room.numero}.',
+            'No encontramos una tarifa activa para la '
+            'habitación ${room.numero}.',
           );
           return;
         }
@@ -205,7 +239,11 @@ class _CreateReservationScreenState
         );
       }
 
-      ref.read(reservationCartProvider.notifier).clear();
+      ref
+          .read(
+            reservationCartProvider.notifier,
+          )
+          .clear();
 
       ref.invalidate(reservasProvider);
 
@@ -213,15 +251,19 @@ class _CreateReservationScreenState
         reservaDetailProvider(reservation.id),
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Reserva creada correctamente',
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Reserva creada correctamente',
+            ),
           ),
-        ),
-      );
+        );
 
       context.go(
         '/reservas/${reservation.id}',
@@ -269,11 +311,27 @@ class _CreateReservationScreenState
 
     final rates = ratesAsync.asData?.value ?? const <TarifaHabitacion>[];
 
-    final subtotal = _subtotal(
+    final nightlyPrice = _baseNightlyPrice(
       rooms,
       rates,
     );
 
+    final stayPrice = _baseStayPrice(
+      rooms,
+      rates,
+    );
+
+    final adultsSubtotal = _adultSubtotal(
+      rooms,
+      rates,
+    );
+
+    final childrenSubtotal = _childrenSubtotal(
+      rooms,
+      rates,
+    );
+
+    final subtotal = adultsSubtotal + childrenSubtotal;
     final taxes = subtotal * _taxRate;
     final total = subtotal + taxes;
 
@@ -361,6 +419,8 @@ class _CreateReservationScreenState
                           rates,
                         ),
                         nights: _nights,
+                        adults: _adults,
+                        childrenCount: _children,
                         onRemove: () {
                           ref
                               .read(
@@ -390,6 +450,16 @@ class _CreateReservationScreenState
               ),
             ),
             const SizedBox(height: 24),
+            _PriceCalculationCard(
+              nightlyPrice: nightlyPrice,
+              nights: _nights,
+              stayPrice: stayPrice,
+              adults: _adults,
+              adultsSubtotal: adultsSubtotal,
+              childrenCount: _children,
+              childrenSubtotal: childrenSubtotal,
+            ),
+            const SizedBox(height: 18),
             PriceSummary(
               subtotal: subtotal,
               taxes: taxes,
@@ -452,9 +522,14 @@ class _DateSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = DateFormat(
-      'dd/MM/yyyy',
-    );
+    final formatter = DateFormat('dd/MM/yyyy');
+    final selectedRange = range;
+
+    final dateText = selectedRange == null
+        ? 'Selecciona entrada y salida'
+        : '${formatter.format(selectedRange.start)} → '
+            '${formatter.format(selectedRange.end)} · '
+            '$nights noches';
 
     return InkWell(
       onTap: onTap,
@@ -495,11 +570,7 @@ class _DateSelector extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    range == null
-                        ? 'Selecciona entrada y salida'
-                        : '${formatter.format(range!.start)} → '
-                            '${formatter.format(range!.end)} · '
-                            '$nights noches',
+                    dateText,
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                     ),
@@ -545,7 +616,7 @@ class _GuestCounterCard extends StatelessWidget {
         children: [
           _CounterRow(
             title: 'Adultos',
-            subtitle: 'Mayores de 12 años',
+            subtitle: 'Tarifa completa por persona',
             value: adults,
             minimum: 1,
             onChanged: onAdultsChanged,
@@ -558,7 +629,7 @@ class _GuestCounterCard extends StatelessWidget {
           ),
           _CounterRow(
             title: 'Niños',
-            subtitle: 'De 0 a 12 años',
+            subtitle: 'Pagan el 50% de la tarifa',
             value: childrenCount,
             minimum: 0,
             onChanged: onChildrenChanged,
@@ -650,17 +721,29 @@ class _SelectedRoomCard extends StatelessWidget {
     required this.room,
     required this.rate,
     required this.nights,
+    required this.adults,
+    required this.childrenCount,
     required this.onRemove,
   });
 
   final Habitacion room;
   final TarifaHabitacion? rate;
   final int nights;
+  final int adults;
+  final int childrenCount;
   final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    final amount = (rate?.precioNoche ?? 0) * nights;
+    final currentRate = rate;
+    final adultNightPrice = currentRate?.precioNoche ?? 0;
+    final childNightPrice = adultNightPrice * 0.50;
+
+    final adultTotal = adultNightPrice * nights * adults;
+
+    final childrenTotal = childNightPrice * nights * childrenCount;
+
+    final total = adultTotal + childrenTotal;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -695,19 +778,36 @@ class _SelectedRoomCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  rate == null
-                      ? 'Tarifa no disponible'
-                      : '\$${rate!.precioNoche.toStringAsFixed(2)} '
-                          'por noche'
-                          '${nights > 0 ? ' · \$${amount.toStringAsFixed(2)}' : ''}',
-                  style: TextStyle(
-                    color: rate == null
-                        ? AppColors.error
-                        : AppColors.textSecondary,
+                const SizedBox(height: 5),
+                if (currentRate == null)
+                  const Text(
+                    'Tarifa no disponible',
+                    style: TextStyle(
+                      color: AppColors.error,
+                    ),
+                  )
+                else ...[
+                  Text(
+                    '\$${adultNightPrice.toStringAsFixed(2)} '
+                    'adulto/noche · '
+                    '\$${childNightPrice.toStringAsFixed(2)} '
+                    'niño/noche',
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
+                  if (nights > 0) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '$nights noches · Total '
+                      '\$${total.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ],
               ],
             ),
           ),
@@ -721,6 +821,110 @@ class _SelectedRoomCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PriceCalculationCard extends StatelessWidget {
+  const _PriceCalculationCard({
+    required this.nightlyPrice,
+    required this.nights,
+    required this.stayPrice,
+    required this.adults,
+    required this.adultsSubtotal,
+    required this.childrenCount,
+    required this.childrenSubtotal,
+  });
+
+  final double nightlyPrice;
+  final int nights;
+  final double stayPrice;
+  final int adults;
+  final double adultsSubtotal;
+  final int childrenCount;
+  final double childrenSubtotal;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.calculate_outlined,
+                color: AppColors.primary,
+              ),
+              SizedBox(width: 9),
+              Text(
+                'Cálculo de la estadía',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _CalculationRow(
+            label: '\$${nightlyPrice.toStringAsFixed(2)} × $nights noches',
+            value: '\$${stayPrice.toStringAsFixed(2)}',
+          ),
+          const SizedBox(height: 10),
+          _CalculationRow(
+            label: '$adults ${adults == 1 ? 'adulto' : 'adultos'} × 100%',
+            value: '\$${adultsSubtotal.toStringAsFixed(2)}',
+          ),
+          if (childrenCount > 0) ...[
+            const SizedBox(height: 10),
+            _CalculationRow(
+              label:
+                  '$childrenCount ${childrenCount == 1 ? 'niño' : 'niños'} × 50%',
+              value: '\$${childrenSubtotal.toStringAsFixed(2)}',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CalculationRow extends StatelessWidget {
+  const _CalculationRow({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }
